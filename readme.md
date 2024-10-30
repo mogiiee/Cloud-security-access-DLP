@@ -1,4 +1,3 @@
-readme_content = """
 # Cloud Security Access DLP
 
 ## Overview

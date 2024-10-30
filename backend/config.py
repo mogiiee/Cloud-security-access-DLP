@@ -2,7 +2,7 @@ import os
 
 MONGO_URI = os.getenv(
     "MONGO_URI", 
-    "mongodb+srv://<username>:<password>@cluster0.mongodb.net/cloud_security?retryWrites=true&w=majority"
+    "mongodb+srv://mogiiee:mogiiee@cluster0.f8mil.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 )
 
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
