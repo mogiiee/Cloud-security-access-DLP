@@ -1,11 +1,25 @@
 from google.cloud import storage
+import re
 from backend.config import GCP_CREDENTIALS
 
 client = storage.Client.from_service_account_json(GCP_CREDENTIALS)
 
-def get_public_gcp_buckets():
-    public_buckets = []
-    for bucket in client.list_buckets():
-        if bucket.iam_configuration.uniform_bucket_level_access_enabled:
-            public_buckets.append(bucket.name)
-    return public_buckets
+def search_gcp_bucket(bucket_name, query):
+    results = []
+    bucket = client.get_bucket(bucket_name)
+    for blob in bucket.list_blobs():
+        content = blob.download_as_text()
+        if query in content:
+            results.extend(extract_sensitive_data(content))
+    return results
+
+def extract_sensitive_data(text):
+    patterns = {
+        "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+        "phone": r"(\+?\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}",
+        "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+    }
+    matches = []
+    for label, pattern in patterns.items():
+        matches.extend(re.findall(pattern, text))
+    return matches

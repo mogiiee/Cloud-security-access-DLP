@@ -1,22 +1,17 @@
-from fastapi import FastAPI
-from backend.db import db
-from backend.models import PublicResource, DLPViolation
-from backend.cloud_integrations.aws import get_public_s3_buckets
-from backend.cloud_integrations.gcp import get_public_gcp_buckets
+from fastapi import FastAPI, HTTPException
+from backend.cloud_integrations.aws import search_aws_bucket
+from backend.cloud_integrations.gcp import search_gcp_bucket
 
 app = FastAPI()
 
-@app.get("/aws/public-buckets")
-async def aws_public_buckets():
-    buckets = get_public_s3_buckets()
-    return {"public_buckets": buckets}
+AWS_BUCKET_NAME = "your-aws-bucket-name"
+GCP_BUCKET_NAME = "your-gcp-bucket-name"
 
-@app.get("/gcp/public-buckets")
-async def gcp_public_buckets():
-    buckets = get_public_gcp_buckets()
-    return {"public_buckets": buckets}
-
-@app.post("/dlp/violations")
-async def report_dlp_violation(violation: DLPViolation):
-    result = await db["dlp_violations"].insert_one(violation.dict())
-    return {"id": str(result.inserted_id)}
+@app.get("/search/")
+async def search_data(query: str):
+    try:
+        aws_results = search_aws_bucket(AWS_BUCKET_NAME, query)
+        gcp_results = search_gcp_bucket(GCP_BUCKET_NAME, query)
+        return {"aws_results": aws_results, "gcp_results": gcp_results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
