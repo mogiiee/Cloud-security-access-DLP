@@ -19,7 +19,7 @@ search_button = st.button("Search")
 
 # Perform search and handle user input
 if search_button and query:
-    with st.spinner("🔍 Searching AWS and GCP buckets..."):
+    with st.spinner("🔍 Searching the internet."):
         try:
             # Optimized API request to deployed backend
             backend_url = f"https://cloud-data-backend.onrender.com/search/?query={query}"
@@ -39,7 +39,7 @@ if search_button and query:
                 results_df = pd.DataFrame(results_list)
                 st.dataframe(results_df)
             else:
-                st.warning("No matching results found in AWS or GCP buckets.")
+                st.warning("No matching results found in AWS or GCP buckets from the internet.")
         
         except requests.exceptions.RequestException as e:
             st.error(f"An error occurred: {str(e)}")

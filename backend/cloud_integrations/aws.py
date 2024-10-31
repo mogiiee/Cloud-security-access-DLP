@@ -1,7 +1,7 @@
 import boto3
 import json
 import os
-from fuzzywuzzy import fuzz
+import re
 
 # Load AWS credentials from environment variables
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
@@ -18,9 +18,12 @@ s3_client = boto3.client(
 )
 
 def search_aws_bucket(query):
-    """Search for a query in all files of the S3 bucket using improved matching."""
+    """Search for a query in all files of the S3 bucket using regex matching."""
     results = []
     try:
+        # Compile a regex pattern for case-insensitive, partial matching
+        pattern = re.compile(re.escape(query), re.IGNORECASE)
+
         # List all objects in the bucket
         response = s3_client.list_objects_v2(Bucket=AWS_BUCKET_NAME)
         
@@ -29,18 +32,17 @@ def search_aws_bucket(query):
             obj_body = s3_client.get_object(Bucket=AWS_BUCKET_NAME, Key=obj["Key"])["Body"].read().decode()
             records = json.loads(obj_body)
 
-            # Check each record for a precise fuzzy match
+            # Check each record for a regex match
             for record in records:
-                if is_precise_fuzzy_match(record, query):
+                if has_regex_match(record, pattern):
                     results.append({"source": "AWS", "file": obj["Key"], "record": record})
     except Exception as e:
         print(f"Error accessing AWS S3: {str(e)}")
     return results
 
-def is_precise_fuzzy_match(record, query, threshold=85):
-    """Check for a high-relevance match based on specific fields in the record."""
-    for field in ["name", "email"]:  # Add fields you want to target, such as "name" or "email"
-        if field in record and isinstance(record[field], str):
-            if fuzz.ratio(record[field].lower(), query.lower()) >= threshold:
-                return True
+def has_regex_match(record, pattern):
+    """Check if any relevant field in the record matches the regex pattern."""
+    for field in ["name", "email"]:  # Specify fields to target for matching
+        if field in record and isinstance(record[field], str) and pattern.search(record[field]):
+            return True
     return False
