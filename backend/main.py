@@ -8,7 +8,7 @@ app = FastAPI()
 async def search_data(query: str = Query(..., description="Search term")):
     """Efficiently search for a term in both AWS and GCP buckets."""
     try:
-        # Fetch results from both AWS and GCP
+        # Fetch results from both AWS and GCP with the improved search functions
         aws_results = search_aws_bucket(query)
         gcp_results = search_gcp_bucket(query)
 
