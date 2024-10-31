@@ -9,11 +9,3 @@ services:
       - fromGroup: env  # References the `env` group you've created
     healthCheckPath: "/docs"
 
-  - name: cloud-data-frontend
-    type: web
-    env: python
-    startCommand: "streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
-    plan: free
-    envVars:
-      - fromGroup: env  # Uses the same `env` group for frontend variables if needed
-    healthCheckPath: "/"
