@@ -10,7 +10,7 @@ fake = Faker()
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME", "your-bucket-name")
+AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
 
 # Initialize the S3 client
 s3_client = boto3.client(
@@ -30,6 +30,9 @@ def generate_large_json_file(file_name, num_records=100000):
             "phone_number": fake.phone_number(),
             "address": fake.address(),
             "ssn": fake.ssn(),
+            "job": fake.job(),
+            "email": fake.email(),
+            "card_number": fake.credit_card_number(),
         }
         data.append(record)
 
@@ -54,6 +57,5 @@ if __name__ == "__main__":
     json_file_name = "large_data.json"
     generate_large_json_file(json_file_name, num_records=10000)
 
-    # Upload the generated JSON file to S3
-    upload_file_to_s3(json_file_name, AWS_BUCKET_NAME)
+
 

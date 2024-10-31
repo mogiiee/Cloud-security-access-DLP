@@ -1,0 +1,38 @@
+services:
+  - name: cloud-data-backend
+    type: web
+    env: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port 8000"
+    plan: free
+    envVars:
+      - key: AWS_ACCESS_KEY
+        sync: true
+      - key: AWS_SECRET_KEY
+        sync: true
+      - key: AWS_REGION
+        value: "us-east-1"  # Replace with your AWS region if different
+      - key: AWS_BUCKET_NAME
+        sync: true
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: "/app/gcp-service-account.json"
+      - key: GCP_BUCKET_NAME
+        sync: true
+    files:
+      - path: /app/gcp-service-account.json
+        contents: ${GCP_SERVICE_ACCOUNT_JSON}  # Injects JSON key as env variable
+    healthCheckPath: "/docs"
+    disk:
+      name: persistent-data
+      mountPath: /app
+
+  - name: cloud-data-frontend
+    type: web
+    env: python
+    buildCommand: "pip install -r frontend/requirements.txt"
+    startCommand: "streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
+    plan: free
+    envVars:
+      - key: STREAMLIT_SERVER_PORT
+        value: "8501"
+    healthCheckPath: "/"
