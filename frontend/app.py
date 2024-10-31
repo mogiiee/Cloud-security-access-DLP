@@ -13,14 +13,6 @@ Simply enter a **name**, **email**, **phone number**, or any search term, and th
 For each match, you'll see **source information** (AWS or GCP), **file name**, and **relevant data fields** like emails, phone numbers, addresses, and more!
 """)
 
-# Instructions for users on how to use the tool
-st.markdown("### 🔍 How to Use")
-st.markdown("""
-1. **Enter a Search Term**: Type a name, email, or any identifier in the search bar.
-2. **Click Search**: The tool will query AWS and GCP for data matching your term.
-3. **View Results**: See each matching record with details and source information.
-""")
-
 # Input field for search term
 query = st.text_input("Enter a search term (e.g., name, email, phone number):", "")
 search_button = st.button("Search")
@@ -29,24 +21,21 @@ search_button = st.button("Search")
 if search_button and query:
     with st.spinner("🔍 Searching AWS and GCP buckets..."):
         try:
-            # API request to search data
-            response = requests.get(f"http://localhost:8000/search/?query={query}")
+            # Optimized API request to deployed backend
+            backend_url = f"https://cloud-data-backend.onrender.com/search/?query={query}"
+            response = requests.get(backend_url, timeout=1000)  # Timeout to prevent hanging requests
             response.raise_for_status()
             data = response.json()
 
+            # Display results
             if "results" in data:
                 st.success(f"Search completed! {len(data['results'])} results found.")
 
-                # Display results with source and file information in an organized table format
-                st.subheader("Search Results")
-                results_list = []
-                for result in data["results"]:
-                    record = result["record"]
-                    record["Source"] = result["source"]
-                    record["File"] = result["file"]
-                    results_list.append(record)
-                
-                # Convert results to DataFrame for better visualization
+                # Display results in a DataFrame for improved readability
+                results_list = [
+                    {**result["record"], "Source": result["source"], "File": result["file"]}
+                    for result in data["results"]
+                ]
                 results_df = pd.DataFrame(results_list)
                 st.dataframe(results_df)
             else:
@@ -55,7 +44,7 @@ if search_button and query:
         except requests.exceptions.RequestException as e:
             st.error(f"An error occurred: {str(e)}")
 
-# Add informational section about how the search works
+# Additional informational sections
 st.markdown("---")
 st.markdown("### 💡 How It Works")
 st.markdown("""
@@ -64,7 +53,7 @@ st.markdown("""
 - **Source Identification**: Each result clearly shows whether the data was retrieved from AWS or GCP, along with the filename for easy reference.
 """)
 
-# Include a sample output and explanation of each field in the output
+# Include a sample output for clarity
 st.markdown("### 📊 Sample Output")
 sample_output = {
     "Source": "AWS",
