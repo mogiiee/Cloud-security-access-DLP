@@ -1,25 +1,26 @@
 from google.cloud import storage
-import re
-from backend.config import GCP_CREDENTIALS
+import json
+import os
 
-client = storage.Client.from_service_account_json(GCP_CREDENTIALS)
+# Set up Google Cloud credentials
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/amogharya/Documents/projects/CASB/gcp_access_token.json"
+GCP_BUCKET_NAME = "large_data_bucket"
 
-def search_gcp_bucket(bucket_name, query):
+# Initialize the GCP Storage client
+storage_client = storage.Client()
+
+def search_gcp_bucket(query):
+    """Search for a query in all files of the GCP bucket."""
     results = []
-    bucket = client.get_bucket(bucket_name)
+    bucket = storage_client.get_bucket(GCP_BUCKET_NAME)
+    
     for blob in bucket.list_blobs():
+        # Download and parse the JSON content
         content = blob.download_as_text()
-        if query in content:
-            results.extend(extract_sensitive_data(content))
+        records = json.loads(content)
+        
+        # Check each record for a match
+        for record in records:
+            if any(query.lower() in str(value).lower() for value in record.values()):
+                results.append({"source": "GCP", "file": blob.name, "record": record})
     return results
-
-def extract_sensitive_data(text):
-    patterns = {
-        "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-        "phone": r"(\+?\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}",
-        "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
-    }
-    matches = []
-    for label, pattern in patterns.items():
-        matches.extend(re.findall(pattern, text))
-    return matches

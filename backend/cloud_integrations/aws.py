@@ -1,4 +1,5 @@
 import boto3
+import json
 import re
 import os
 
@@ -20,26 +21,18 @@ def search_aws_bucket(query):
     """Search for a query in all files of the S3 bucket."""
     results = []
     try:
+        # List all objects in the bucket
         response = s3_client.list_objects_v2(Bucket=AWS_BUCKET_NAME)
+        
         for obj in response.get("Contents", []):
+            # Retrieve object content
             obj_body = s3_client.get_object(Bucket=AWS_BUCKET_NAME, Key=obj["Key"])["Body"].read().decode()
-            if query in obj_body:
-                matches = extract_sensitive_data(obj_body)
-                results.append({"file": obj["Key"], "matches": matches})
+            records = json.loads(obj_body)
+
+            # Check each record for a match
+            for record in records:
+                if any(query.lower() in str(value).lower() for value in record.values()):
+                    results.append({"source": "AWS", "file": obj["Key"], "record": record})
     except Exception as e:
         print(f"Error accessing AWS S3: {str(e)}")
     return results
-
-def extract_sensitive_data(text):
-    """Extract emails, phone numbers, and SSNs using regex."""
-    patterns = {
-        "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-        "phone": r"(\+?\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}",
-        "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
-    }
-    matches = {}
-    for label, pattern in patterns.items():
-        found = re.findall(pattern, text)
-        if found:
-            matches[label] = found
-    return matches

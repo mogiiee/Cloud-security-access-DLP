@@ -1,17 +1,32 @@
-from fastapi import FastAPI, HTTPException
+import logging
+from fastapi import FastAPI, HTTPException, Query
 from backend.cloud_integrations.aws import search_aws_bucket
 from backend.cloud_integrations.gcp import search_gcp_bucket
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 
-AWS_BUCKET_NAME = "your-aws-bucket-name"
-GCP_BUCKET_NAME = "your-gcp-bucket-name"
-
 @app.get("/search/")
-async def search_data(query: str):
+async def search_data(query: str = Query(..., description="Search term")):
+    """Search for a term in both AWS and GCP buckets."""
     try:
-        aws_results = search_aws_bucket(AWS_BUCKET_NAME, query)
-        gcp_results = search_gcp_bucket(GCP_BUCKET_NAME, query)
-        return {"aws_results": aws_results, "gcp_results": gcp_results}
+        logger.debug(f"Starting search for query: {query}")
+        aws_results = search_aws_bucket(query)
+        logger.debug(f"AWS results: {aws_results}")
+        
+        gcp_results = search_gcp_bucket(query)
+        logger.debug(f"GCP results: {gcp_results}")
+        
+        combined_results = aws_results + gcp_results
+        logger.debug(f"Combined results: {combined_results}")
+        
+        if combined_results:
+            return {"results": combined_results}
+        else:
+            return {"message": "No matches found for the given query."}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

@@ -2,64 +2,83 @@ import streamlit as st
 import requests
 import pandas as pd
 
-st.set_page_config(page_title="Cloud Data Search", layout="wide")
+# Set up the page layout and title
+st.set_page_config(page_title="Cloud Data Search Tool", layout="wide")
 
-# Title and description
+# Title and description with emojis for enhanced UX
 st.title("🔍 Cloud Data Search Tool")
 st.markdown("""
-This tool allows you to search **AWS S3** and **GCP Storage Buckets** for specific information, such as:
-- **Emails** (e.g., john.doe@example.com)
-- **Phone Numbers** (e.g., +1-555-123-4567)
-- **Social Security Numbers (SSNs)** (e.g., 123-45-6789)
-
-Simply enter a **name or keyword** below, and the tool will query both AWS and GCP buckets and display all matching results.
+Welcome to the **Cloud Data Search Tool**! This app allows you to search through data stored in **AWS S3** and **GCP Storage**.  
+Simply enter a **name**, **email**, **phone number**, or any search term, and the tool will scan across both platforms to retrieve matching records.  
+For each match, you'll see **source information** (AWS or GCP), **file name**, and **relevant data fields** like emails, phone numbers, addresses, and more!
 """)
 
-# Input field and search button
-query = st.text_input("Enter a name or keyword to search:", "")
+# Instructions for users on how to use the tool
+st.markdown("### 🔍 How to Use")
+st.markdown("""
+1. **Enter a Search Term**: Type a name, email, or any identifier in the search bar.
+2. **Click Search**: The tool will query AWS and GCP for data matching your term.
+3. **View Results**: See each matching record with details and source information.
+""")
+
+# Input field for search term
+query = st.text_input("Enter a search term (e.g., name, email, phone number):", "")
 search_button = st.button("Search")
 
-# Progress indicator and API call
+# Perform search and handle user input
 if search_button and query:
-    with st.spinner("Searching AWS and GCP buckets..."):
+    with st.spinner("🔍 Searching AWS and GCP buckets..."):
         try:
+            # API request to search data
             response = requests.get(f"http://localhost:8000/search/?query={query}")
             response.raise_for_status()
             data = response.json()
 
-            # Display results
-            if data["aws_results"] or data["gcp_results"]:
-                st.success("Search completed! Results found.")
-                
-                # AWS Results
-                st.subheader("🗂 AWS S3 Bucket Results")
-                if data["aws_results"]:
-                    aws_df = pd.DataFrame(data["aws_results"], columns=["Match"])
-                    st.dataframe(aws_df)
-                else:
-                    st.info("No matches found in AWS S3 buckets.")
+            if "results" in data:
+                st.success(f"Search completed! {len(data['results'])} results found.")
 
-                # GCP Results
-                st.subheader("🗂 GCP Storage Bucket Results")
-                if data["gcp_results"]:
-                    gcp_df = pd.DataFrame(data["gcp_results"], columns=["Match"])
-                    st.dataframe(gcp_df)
-                else:
-                    st.info("No matches found in GCP Storage buckets.")
+                # Display results with source and file information in an organized table format
+                st.subheader("Search Results")
+                results_list = []
+                for result in data["results"]:
+                    record = result["record"]
+                    record["Source"] = result["source"]
+                    record["File"] = result["file"]
+                    results_list.append(record)
+                
+                # Convert results to DataFrame for better visualization
+                results_df = pd.DataFrame(results_list)
+                st.dataframe(results_df)
             else:
                 st.warning("No matching results found in AWS or GCP buckets.")
+        
         except requests.exceptions.RequestException as e:
             st.error(f"An error occurred: {str(e)}")
 
-# Footer with helpful information
+# Add informational section about how the search works
+st.markdown("---")
+st.markdown("### 💡 How It Works")
 st.markdown("""
----
-### How it Works
-- The tool queries **AWS S3** and **GCP Storage Buckets** for the keyword you enter.
-- It uses **regular expressions (regex)** to detect emails, phone numbers, and SSNs.
-- Results are displayed in interactive tables for easier review.
-
-### Example Searches
-- Try searching for a **name** like "John".
-- Or search for **emails** by entering part of an email (e.g., "example").
+- **Data Sources**: This app searches across both **AWS S3** and **GCP Storage** buckets.
+- **Regex Search**: It uses regex to locate matching terms in data fields such as **name**, **phone number**, **email**, **SSN**, **job title**, and **credit card number**.
+- **Source Identification**: Each result clearly shows whether the data was retrieved from AWS or GCP, along with the filename for easy reference.
 """)
+
+# Include a sample output and explanation of each field in the output
+st.markdown("### 📊 Sample Output")
+sample_output = {
+    "Source": "AWS",
+    "File": "sample_data.json",
+    "Name": "John Doe",
+    "Email": "john.doe@example.com",
+    "Phone Number": "+1-555-123-4567",
+    "Address": "123 Main St, City, State, ZIP",
+    "SSN": "123-45-6789",
+    "Job": "Software Engineer",
+    "Card Number": "4111 1111 1111 1111"
+}
+st.json(sample_output)
+
+# Footer and contact information
+st.markdown("---")
+st.markdown("👨‍💻 **Cloud Data Search Tool** by [Your Name](mailto:your-email@example.com)")
