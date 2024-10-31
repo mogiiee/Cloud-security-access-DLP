@@ -2,8 +2,8 @@ services:
   - name: cloud-data-backend
     type: web
     env: python
-    buildCommand: "pip install -r backend/requirements.txt"
-    startCommand: "uvicorn main:app --host 0.0.0.0 --port 8000"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn backend/main:app --host 0.0.0.0 --port 8000"
     plan: free
     envVars:
       - key: AWS_ACCESS_KEY
@@ -15,7 +15,7 @@ services:
       - key: AWS_BUCKET_NAME
         sync: true
       - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: "/app/gcp-service-account.json"
+        value: "/etc/secrets/gcp_access_token.json"
       - key: GCP_BUCKET_NAME
         sync: true
     files:
