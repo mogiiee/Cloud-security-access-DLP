@@ -3,7 +3,7 @@ services:
     type: web
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn backend/main:app --host 0.0.0.0 --port 8000"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port 8000"
     plan: free
     envVars:
       - key: AWS_ACCESS_KEY
@@ -15,12 +15,11 @@ services:
       - key: AWS_BUCKET_NAME
         sync: true
       - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: "/etc/secrets/gcp_access_token.json"
+        value: "/etc/secrets/gcp_access_token.json"  # Set path to target file
       - key: GCP_BUCKET_NAME
         sync: true
-    files:
-      - path: /etc/secrets/gcp_access_token.json
-        contents: ${GCP_SERVICE_ACCOUNT_JSON}  # Injects JSON key as env variable
+      - key: GCP_SERVICE_ACCOUNT_JSON
+        sync: true  # Pass the JSON content as an env variable
     healthCheckPath: "/docs"
     disk:
       name: persistent-data
