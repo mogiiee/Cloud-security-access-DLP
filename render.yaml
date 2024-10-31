@@ -12,7 +12,6 @@ services:
   - name: cloud-data-frontend
     type: web
     env: python
-    buildCommand: "pip install -r frontend/requirements.txt"
     startCommand: "streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
     plan: free
     envVars:
