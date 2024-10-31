@@ -6,24 +6,8 @@ services:
     startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port 8000"
     plan: free
     envVars:
-      - key: AWS_ACCESS_KEY
-        sync: true
-      - key: AWS_SECRET_KEY
-        sync: true
-      - key: AWS_REGION
-        value: "us-east-1"  # Replace with your AWS region if different
-      - key: AWS_BUCKET_NAME
-        sync: true
-      - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: "/etc/secrets/gcp_access_token.json"  # Set path to target file
-      - key: GCP_BUCKET_NAME
-        sync: true
-      - key: GCP_SERVICE_ACCOUNT_JSON
-        sync: true  # Pass the JSON content as an env variable
+      - fromGroup: env  # References the `env` group you've created
     healthCheckPath: "/docs"
-    disk:
-      name: persistent-data
-      mountPath: /app
 
   - name: cloud-data-frontend
     type: web
@@ -32,6 +16,5 @@ services:
     startCommand: "streamlit run app.py --server.port=8501 --server.address=0.0.0.0"
     plan: free
     envVars:
-      - key: STREAMLIT_SERVER_PORT
-        value: "8501"
+      - fromGroup: env  # Uses the same `env` group for frontend variables if needed
     healthCheckPath: "/"
