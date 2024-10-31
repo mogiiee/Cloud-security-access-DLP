@@ -19,7 +19,7 @@ services:
       - key: GCP_BUCKET_NAME
         sync: true
     files:
-      - path: gcp_access_token.json
+      - path: /etc/secrets/gcp_access_token.json
         contents: ${GCP_SERVICE_ACCOUNT_JSON}  # Injects JSON key as env variable
     healthCheckPath: "/docs"
     disk:
