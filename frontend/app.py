@@ -31,7 +31,7 @@ if search_button and query:
                 backend_url += f"&email={user_email}"
 
             # Optimized API request to deployed backend
-            response = requests.get(backend_url, timeout=10)
+            response = requests.get(backend_url, timeout=10000)
             response.raise_for_status()
             data = response.json()
 
