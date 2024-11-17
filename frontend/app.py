@@ -5,7 +5,7 @@ import pandas as pd
 # Set up the page layout and title
 st.set_page_config(page_title="Cloud Data Loss Prevention (DLP) Tool", layout="wide")
 
-# Title and description with emojis for enhanced UX
+# Title and description
 st.title("🔍 Cloud Data Loss Prevention (DLP) Tool")
 st.markdown("""
 Welcome to the **Cloud Data Loss Prevention (DLP) Tool**! This application scans across **AWS S3** and **GCP Storage** 
@@ -64,22 +64,3 @@ st.markdown("""
 - **Source Identification**: Each result clearly shows whether the data was retrieved from AWS or GCP, along with the filename for easy reference.
 - **Email Option**: Enable the email option to receive results directly in your inbox for secure access.
 """)
-
-# Sample output section for user reference
-st.markdown("### 📊 Sample Output")
-sample_output = {
-    "Source": "AWS",
-    "File": "sample_data.json",
-    "Name": "John Doe",
-    "Email": "john.doe@example.com",
-    "Phone Number": "+1-555-123-4567",
-    "Address": "123 Main St, City, State, ZIP",
-    "SSN": "123-45-6789",
-    "Job": "Software Engineer",
-    "Card Number": "4111 1111 1111 1111"
-}
-st.json(sample_output)
-
-# Footer and contact information
-st.markdown("---")
-st.markdown("👨‍💻 **Cloud Data Loss Prevention Tool** by [Your Name](mailto:your-email@example.com)")
