@@ -26,7 +26,7 @@ if search_button and query:
     with st.spinner("🔍 Searching AWS and GCP buckets..."):
         try:
             # Prepare the backend URL
-            backend_url = f"https://cloud-data-backend.onrender.com/search/?query={query}"
+            backend_url = f"http://localhost:8000/search/?query={query}"
             if user_email:
                 backend_url += f"&email={user_email}"
 

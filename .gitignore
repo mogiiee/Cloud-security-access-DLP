@@ -4,3 +4,4 @@ virtualenv
 large_data.json
 gcp_access_token.json
 large_data_gcp.json
+ssh_config
